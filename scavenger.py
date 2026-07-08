@@ -2,18 +2,16 @@ import os
 import datetime
 import sys
 
-# Defensive check to ensure context binding succeeded
 try:
-    import yt_dlp
     from google import genai
     from google.genai import types
 except ImportError as e:
     print(f"❌ CRITICAL MAIN FRAME ERROR: Dependency binding failed: {str(e)}")
     sys.exit(1)
 
-TARGET_VIDEO_URL = "https://youtube.com/shorts/U5FOK4sin58?si=i0F9cLGLTzqKkr8-"
+# Converted to the standard YouTube watch format for seamless API ingestion
+TARGET_VIDEO_URL = "https://www.youtube.com/watch?v=U5FOK4sin58"
 
-# THE GIGANTIC INTELLIGENCE CONSTRAINTS PARAGRAPH
 SYSTEM_PROMPT = """
 CRITICAL ETHICAL DIRECTIVE & VERIFICATION MANDATE:
 You are operating as an elite, cold, completely un-biased forensic political analyst and dialogue auditor specializing in Tamil Nadu politics. 
@@ -37,27 +35,6 @@ Verification Analysis: [An exhaustive, deeply reasoned paragraph outlining the r
 Source: [Specific public records, government portals, or primary news announcements validating this precise conclusion.])
 """
 
-def extract_audio(video_url):
-    print(f"📥 Extracting audio feed from target network: {video_url}")
-    options = {
-        'format': 'bestaudio/best',
-        'outtmpl': 'temp_audio.%(ext)s',
-        'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}],
-        'quiet': True,
-        'no_warnings': True,
-        # Bypasses typical data center restriction blocks
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-    }
-    try:
-        with yt_dlp.YoutubeDL(options) as ydl:
-            ydl.download([video_url])
-        return "temp_audio.mp3"
-    except Exception as e:
-        print(f"❌ yt_dlp Extraction Subsystem Failed: {str(e)}")
-        raise
-
 def run_scavenger():
     print("🛰️ Booting Cloud Scavenger System...")
     
@@ -67,23 +44,22 @@ def run_scavenger():
         sys.exit(1)
         
     client = genai.Client(api_key=api_key)
-    audio_file = None
-    uploaded_audio = None
     
     try:
-        audio_file = extract_audio(TARGET_VIDEO_URL)
-        print("✅ Audio stream stored in local volatile disk buffer.")
+        print(f"🧠 Transporting YouTube Feed ({TARGET_VIDEO_URL}) directly to Gemini 2.5 Pro Neural Net...")
         
-        print("🧠 Transporting payload to Gemini 2.5 Pro Neural Net...")
-        uploaded_audio = client.files.upload(file=audio_file)
-        
-        print("🔍 Initiating multi-layered logical thinking loop & web-grounding checks...")
         response = client.models.generate_content(
             model="gemini-2.5-pro",
-            contents=[SYSTEM_PROMPT, uploaded_audio],
+            # This directly feeds the YouTube URL into the model's brain!
+            contents=types.Content(
+                parts=[
+                    types.Part(file_data=types.FileData(file_uri=TARGET_VIDEO_URL)),
+                    types.Part(text=SYSTEM_PROMPT)
+                ]
+            ),
             config=types.GenerateContentConfig(
                 tools=[{"google_search": {}}],
-                temperature=0.10 # Suppresses hallucinations; enforces clinical, math-like factuality
+                temperature=0.10
             )
         )
         
@@ -100,18 +76,7 @@ def run_scavenger():
     except Exception as e:
         print(f"❌ SYSTEM ENGINE CRASHED: {str(e)}")
         sys.exit(1)
-        
-    finally:
-        # Ensures server memory and local data buffers are scrubbed completely clean
-        print("🧹 Cleaning local workspace buffers...")
-        if audio_file and os.path.exists(audio_file):
-            os.remove(audio_file)
-        if client and uploaded_audio:
-            try:
-                client.files.delete(name=uploaded_audio.name)
-            except Exception:
-                pass
 
 if __name__ == "__main__":
     run_scavenger()
-        
+    
