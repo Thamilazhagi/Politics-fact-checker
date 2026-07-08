@@ -20,12 +20,12 @@ def test_engine():
     print("✅ API Key found. Initializing Gemini Client...")
     
     try:
-        # Force-feed the key to the client to avoid SDK guessing games
+        # Force-feed the key to the client
         client = genai.Client(api_key=api_key)
         
-        # Using FLASH: The most reliable and universally available free model
+        # FIXED: Using the active 2026 model!
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             contents="Translate this to English: இது ஒரு சோதனை. Confirm you are awake in the cloud."
         )
         
