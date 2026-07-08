@@ -46,11 +46,11 @@ def run_scavenger():
     client = genai.Client(api_key=api_key)
     
     try:
-        print(f"🧠 Transporting YouTube Feed ({TARGET_VIDEO_URL}) directly to Gemini 2.5 Pro Neural Net...")
+        print(f"🧠 Transporting YouTube Feed ({TARGET_VIDEO_URL}) directly to Gemini 2.5 Flash Neural Net...")
         
         response = client.models.generate_content(
-            model="gemini-2.5-pro",
-            # This directly feeds the YouTube URL into the model's brain!
+            # BYPASS LOCK: We use 2.5-flash which is fully unlocked on the free tier!
+            model="gemini-2.5-flash",
             contents=types.Content(
                 parts=[
                     types.Part(file_data=types.FileData(file_uri=TARGET_VIDEO_URL)),
