@@ -2,7 +2,6 @@ import os
 import datetime
 from google import genai
 
-# Pulls key securely from GitHub Secrets [1.2.1]
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 def test_engine():
