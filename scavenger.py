@@ -3,23 +3,26 @@ import datetime
 import sys
 import yt_dlp
 from google import genai
+from google.genai import types
 
 # --- 1. YOUR CONFIGURATION ---
-# Put a real YouTube link here! (Keep it under 10 minutes for your first test)
-TARGET_VIDEO_URL = "https://youtube.com/shorts/U5FOK4sin58?si=i0F9cLGLTzqKkr8-"
+TARGET_VIDEO_URL = "https://youtube.com/shorts/U5FOK4sin58"
 
+# We update the prompt to FORCE deep, multi-layered thinking and web searching
 SYSTEM_PROMPT = """
-You are a political analyst and dialogue editor specializing in Tamil Nadu politics.
-Listen to this audio. Identify the speakers based on their voices (e.g., Reporter, Vijay, Udhayanidhi, Seeman, etc. or Speaker A/B if unknown).
-Translate and write out the dialogue continuously in English. Skip filler words.
-Whenever a political or factual claim is made, insert a fact-check immediately after.
+You are an elite, obsessive political analyst and fact-checker specializing in Tamil Nadu politics.
+Your instructions:
+1. THINK DEEPLY 10 TIMES before you write a verdict. Do not take statements at face value.
+2. ALWAYS USE GOOGLE SEARCH to ground your facts. Look up the exact political context, date, and who the speaker is defending or attacking.
+3. Identify the speakers based on their voices.
+4. Translate and write out the dialogue continuously in English.
+5. Whenever a claim is made (even rhetorical defenses of a government), insert a brutal, logically sound fact-check.
 
 Format exactly like this:
-Reporter: [Question asked...]
-Vijay: [Answer...]
+Speaker Name: [English translated dialogue]
 (Verdict: FALSE / VERIFIED / MISLEADING / UNVERIFIED
-What actually happened: [The reality based on TN political history/data]
-Source: [What public record proves this])
+Verification Analysis: [Deep analysis using real TN political context pulled from the web]
+Source: [What public record/news proves this])
 """
 
 def extract_audio(video_url):
@@ -36,7 +39,7 @@ def extract_audio(video_url):
     return "temp_audio.mp3"
 
 def run_scavenger():
-    print("🛰️ Waking up Cloud Scavenger...")
+    print("🛰️ Waking up Cloud Scavenger (Ultra-Reasoning Mode)...")
     
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -46,21 +49,23 @@ def run_scavenger():
     client = genai.Client(api_key=api_key)
     
     try:
-        # Step 1: Rip the Audio
         audio_file = extract_audio(TARGET_VIDEO_URL)
         
-        # Step 2: Upload to Gemini (Zero local CPU processing required!)
-        print("🧠 Uploading audio to Gemini 2.5 Flash...")
+        print("🧠 Uploading audio to Gemini 2.5 Pro...")
         uploaded_audio = client.files.upload(file=audio_file)
         
-        # Step 3: Analyze
-        print("🔍 Analyzing dialogue and fact-checking claims (this takes a minute)...")
+        print("🔍 Searching the web, analyzing dialogue, and deep-thinking (this will take 2-3 minutes)...")
+        
+        # THIS IS THE MAGIC: We force the Pro model to use Google Search Grounding natively
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=[SYSTEM_PROMPT, uploaded_audio]
+            model="gemini-2.5-pro",
+            contents=[SYSTEM_PROMPT, uploaded_audio],
+            config=types.GenerateContentConfig(
+                tools=[{"google_search": {}}], # Enables live web-searching!
+                temperature=0.2 # Keeps the AI cold, logical, and analytical
+            )
         )
         
-        # Step 4: Save Report
         os.makedirs("reports", exist_ok=True)
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"reports/fact_check_{timestamp}.md"
@@ -69,9 +74,8 @@ def run_scavenger():
             f.write(f"# 🛰️ Fact-Check Report\n\n**Source Video**: {TARGET_VIDEO_URL}\n**Date Analyzed**: {timestamp}\n\n---\n\n")
             f.write(response.text)
             
-        print(f"🎉 SUCCESS! Report saved to {filename}")
+        print(f"🎉 SUCCESS! Grounded report saved to {filename}")
         
-        # Cleanup server files
         os.remove(audio_file)
         client.files.delete(name=uploaded_audio.name)
         
@@ -81,4 +85,3 @@ def run_scavenger():
 
 if __name__ == "__main__":
     run_scavenger()
-    
