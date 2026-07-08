@@ -40,10 +40,14 @@ OUTPUT FORMAT:
 2. Translate the dialogue clearly into continuous English.
 3. Fact-check using this exact schema:
 
+# Change the very end of HEAVY_PROMPT to this:
 [Actual Speaker Name]: [English translated dialogue]
 (Verdict: VERIFIED / FALSE / MISLEADING / UNVERIFIED
 Verification Analysis: [Deeply reasoned paragraph outlining real-world metrics, cross-references, and 2026 political context derived from active web searching.]
 Source: [Specific public records or official announcements])
+
+DO NOT ASK FOR INPUT. INGEST THE ATTACHED YOUTUBE VIDEO LINK DIRECTLY right now, extract the dialogue yourself, and begin the output immediately.
+
 """
 
 def load_db():
